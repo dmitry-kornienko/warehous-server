@@ -100,6 +100,25 @@ export class AuthService {
     };
   }
 
+  async current(id: string) {
+    console.log(id);
+    const user = await this.userService.getUserById(id);
+
+    if (!user) {
+      throw new UnauthorizedException({ message: 'Неавторизован' });
+    }
+
+    const userTokenDto = new UserTokenDto(user);
+    const tokens = await this.tokenService.generateTokens({ ...userTokenDto });
+
+    await this.tokenService.saveToken(user._id, tokens.refreshToken);
+
+    return {
+      ...tokens,
+      user,
+    };
+  }
+
   private async validateUser(userDto: CreateUserDto) {
     const user = await this.userService.getUserByEmail(userDto.email);
     if (!user) {
